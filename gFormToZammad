@@ -6,7 +6,7 @@ function onSubmit(e) {
     var latestResponse = allResponses[allResponses.length - 1];
     var response = latestResponse.getItemResponses();
     
-    // Since we've activated the "collect e-mail function" under settings of our form (required for this script to work) 
+    // "collect e-mail function" under settings is required for this script to work
     var mail = allResponses[allResponses.length - 1].getRespondentEmail();
 
     // Creating the ticket body 
