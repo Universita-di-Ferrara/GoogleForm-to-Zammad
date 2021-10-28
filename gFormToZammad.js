@@ -14,28 +14,16 @@ function onSubmit(e) {
     for (let i = 0; i < response.length; i++) {
        
        // The following code is only needed if you have your users uploading files. 
-       // The id number needs to be adjusted based on the number of column your file ids are stored in.
-       // In my case are column 6 and 9
- 
-       if (i === 6 )   
-       {
-        var string = response[i].getResponse().toString();
-        var splitted = string.split(",");
-        for (let h = 0; h < splitted.length; h++) 
-          {
-            ticketBody +=  "<br/>- https://drive.google.com/open?id=" + splitted[h];
-        }
-          continue;
-        }
-        if (i === 9 )   
-       {
-        var string = response[i].getResponse().toString();
-        var splitted = string.split(",");
-        for (let m = 0; m < splitted.length; m++) {
-            ticketBody +=  "<br/>- https://drive.google.com/open?id=" + splitted[m];
-        }
-          continue;
-        }
+        if (response[i].getItem().getType() == "FILE_UPLOAD")   
+            {
+                var string = response[i].getResponse().toString();
+                var splitted = string.split(",");
+                for (let h = 0; h < splitted.length; h++) 
+                    {
+                        ticketBody +=  "<br/>https://drive.google.com/open?id=" + splitted[h];
+                    }
+            continue;
+            }
       ticketBody += "<strong>"+response[i].getItem().getTitle() +"</strong>: " + response[i].getResponse() + "<br/>"; 
      }
 
