@@ -51,7 +51,7 @@ var article = {
 
 var ticket = {
   "title": subject,
-  "group" : group",
+  "group" : group,
   "article" : article,
   "customer_id" : "guess:" +  mail,
   "tags": tags, // "tags": "gets,ignored,anyway,noreply",
