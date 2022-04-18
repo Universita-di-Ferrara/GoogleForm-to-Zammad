@@ -1,12 +1,11 @@
 var POST_URL = "________";
 var MY_TOKEN = "________"
 function onSubmit(e) {
-    var form = FormApp.getActiveForm();
-    var allResponses = form.getResponses();
-    var latestResponse = allResponses[allResponses.length - 1];
-    var response = latestResponse.getItemResponses();
+    // get all item responses contained in a form response
+    var response = e.response.getItemResponses();
     
-    // "collect e-mail function" under settings is required for this script to work
+  // get the email address of the person who submitted a response
+  // Since we've activated the "collect e-mail function" under settings of our form (required for this script to work) 
     var mail = allResponses[allResponses.length - 1].getRespondentEmail();
 
     // Creating the ticket body 
