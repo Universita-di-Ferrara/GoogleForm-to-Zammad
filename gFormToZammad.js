@@ -1,4 +1,4 @@
-var POST_URL = "________";
+var POST_URL = "________/api/v1/tickets/";
 var MY_TOKEN = "________"
 function onSubmit(e) {
     // get all item responses contained in a form response
@@ -43,7 +43,7 @@ var article = {
   "from": firstLastName + " <" + mail + ">",
   "body": ticketBody,
   "type": "web",
-  "sender": 2,
+  "sender_id": 2,
   "internal": false,
   "content_type": "text/html"
 }
