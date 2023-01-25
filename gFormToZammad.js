@@ -1,71 +1,128 @@
-var POST_URL = "________/api/v1/tickets/";
-var MY_TOKEN = "________"
+var POST_URL = "_______________/api/v1/tickets";
+
+var MY_TOKEN = "___________________________";
+var GROUP = "___________________________"; 
+var SUBJECT = __________int_____________;
+var FIRSTLASTNAME = _______________int____________;
+var TAG = ______________int_____________;
+
 function onSubmit(e) {
-    // get all item responses contained in a form response
-    var response = e.response.getItemResponses();
-    
-  // get the email address of the person who submitted a response
+  // get all item responses contained in a form response
+  var formResponse = e.response;
+  
+
+  var ticket = buildTicket(formResponse, GROUP);
+
+  try {
+    // API call
+    createTicket(ticket, POST_URL, MY_TOKEN, e);
+  } catch(error) {
+    //
+    handleError(error, ticket, e);
+    // rethrow the exception so the owner is notified
+    throw error;
+  } finally {
+
+  }
+}
+function buildTicket(formResponse, group) {
   // Since we've activated the "collect e-mail function" under settings of our form (required for this script to work) 
-    var mail = allResponses[allResponses.length - 1].getRespondentEmail();
+  var email = formResponse.getRespondentEmail();
+  console.log("email: " + email);
 
-    // Creating the ticket body 
-    var ticketBody ="";
-    for (let i = 0; i < response.length; i++) {
-       
-       // The following code is only needed if you have your users uploading files. 
-        if (response[i].getItem().getType() == "FILE_UPLOAD")   
-            {
-                var string = response[i].getResponse().toString();
-                var splitted = string.split(",");
-                for (let h = 0; h < splitted.length; h++) 
-                    {
-                        ticketBody +=  "<br/>https://drive.google.com/open?id=" + splitted[h];
-                    }
-            continue;
-            }
-      ticketBody += "<strong>"+response[i].getItem().getTitle() +"</strong>: " + response[i].getResponse() + "<br/>"; 
-     }
+  // 
+  var itemResponses = formResponse.getItemResponses();
 
-/* 
-Setup your variables here
+  // Creating the ticket body 
+  var ticketBody ="";
+  for (var i = 0; i < itemResponses.length; i++) {
+    ticketBody += "<strong>"+itemResponses[i].getItem().getTitle() +"</strong>: " + itemResponses[i].getResponse() + "<br/>"; 
+  }
+  Logger.log(ticketBody)
+  // Setup here 
+  var subject = itemResponses[SUBJECT].getResponse()
+  var firstLastName = itemResponses[FIRSTLASTNAME].getResponse()
+  var tags = itemResponses[TAG].getResponse()
+  
+  var article = {
+    "subject": subject,
+    "reply_to": email,
+    "from": firstLastName + " <" + email + ">",
+    "body": ticketBody,
+    "type": "web",
+    "sender_id": 2,
+    "internal": false,
+    "content_type": "text/html"
+  };
+  Logger.log(article)
 
-Keep in mind that the column number 0 it is usually your 3rd column since the 
-time stamp and the e-mail are not considered by Apps Script index functions
-*/
-var group = "________";
-var subject = response[2].getResponse();
-var firstLastName = response[1].getResponse();
-var tags = response[2].getResponse();
+  var ticket = {
+    "title": subject,
+    "group": group,
+    "article": article,
+    "customer_id": "guess:" + email,
+    "tags": tags
+  };
 
-var article = {
-  "subject": subject,
-  "reply_to": mail,
-  "from": firstLastName + " <" + mail + ">",
-  "body": ticketBody,
-  "type": "web",
-  "sender_id": 2,
-  "internal": false,
-  "content_type": "text/html"
+  return ticket;
+}
+function createTicket(ticket, post_url, token, event) {
+  var options = {
+    "method": "post",
+    "contentType": "application/json",
+    "headers": { "Authorization":"Token token=" + token },
+    "payload": JSON.stringify(ticket),
+    "muteHttpExceptions": false
+  };
+
+  Logger.log(options);
+  var httpResponse = UrlFetchApp.fetch(post_url, options);
+  console.log("Response Code: " + httpResponse.getResponseCode());
+
+  var email = event.response.getRespondentEmail();
+  var formTitle = event.source.getTitle();
+
+  // notify the user that it's all ok
+  MailApp.sendEmail({
+    noReply: true,
+    to: email,
+    subject: "Succesfully submitted form: " + formTitle,
+    htmlBody: "<p>your request was succesfully submitted</p>"
+  });  
+
+  //return httpResponse;
 }
 
-var ticket = {
-  "title": subject,
-  "group" : group,
-  "article" : article,
-  "customer_id" : "guess:" +  mail,
-  "tags": tags, // "tags": "gets,ignored,anyway,noreply",
 
+function handleError(error, ticket, event) {  
+  // cloud log
+  console.error("error: " + error);
+  console.error("ticket: " + JSON.stringify(ticket));
+
+  var email = event.response.getRespondentEmail();
+  var formTitle = event.source.getTitle();
+  var formURL = event.response.toPrefilledUrl();
+  var admins = 'admin_email@@@________________';
+  var logURL = event.response.toPrefilledUrl();
+
+  // notify the user that there was an error and give it the url to re-submit
+  MailApp.sendEmail({
+    noReply: true,
+    to: email,
+    subject: "There was an error on form: " + formTitle,
+    htmlBody: "<p>your request was not submitted</p>" +
+              "<p>click to resumbit: <a href='" + formURL + "'>resubmit</a></p>",
+  });  
+
+  
+  // notify the admins/developers that there was an error and give them the url to investigate
+  MailApp.sendEmail({
+    noReply: true,
+    to: admins,
+    subject: "There was an error on form: " + formTitle,
+    htmlBody: "<p>investigate on GCP console:</p>" +
+              "<a href='" + logURL + "'>resubmit</a>",
+  }); 
+  
 }
 
-var options = {
-  "method": "post",
-  "contentType": "application/json",
-  "headers":{"Authorization":"Token token="+ MY_TOKEN},
-  "payload": JSON.stringify(ticket),
- // "muteHttpExceptions":true // In case you need a clean response message for debugging reasons
-}
-
-var answer = UrlFetchApp.fetch(POST_URL, options);
-//Logger.log(answer.getResponseCode()); 
-
-};
