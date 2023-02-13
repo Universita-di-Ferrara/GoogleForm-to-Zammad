@@ -8,7 +8,13 @@ var TAG = ______________int_____________;
 
 function onSubmit(e) {
   // get all item responses contained in a form response
-  var formResponse = e.response;
+  var formResponse;
+ 
+  try{
+    formResponse = exponentialBackoff_(e.response,5)
+  }catch (error) {
+    console.log(error.message);
+  }
   
 
   var ticket = buildTicket(formResponse, GROUP);
@@ -86,8 +92,8 @@ function createTicket(ticket, post_url, token, event) {
   MailApp.sendEmail({
     noReply: true,
     to: email,
-    subject: "Succesfully submitted form: " + formTitle,
-    htmlBody: "<p>your request was succesfully submitted</p>"
+    subject: "Form inviato con successo: " + formTitle,
+    htmlBody: "<p>La tua richiesta è stata inoltrata al nostro sistema di ticket</p>"
   });  
 
   //return httpResponse;
@@ -102,7 +108,7 @@ function handleError(error, ticket, event) {
   var email = event.response.getRespondentEmail();
   var formTitle = event.source.getTitle();
   var formURL = event.response.toPrefilledUrl();
-  var admins = 'admin_email@@@________________';
+  var admins = '____@____';
   var logURL = event.response.toPrefilledUrl();
 
   // notify the user that there was an error and give it the url to re-submit
@@ -125,4 +131,38 @@ function handleError(error, ticket, event) {
   }); 
   
 }
+
+
+/**
+* Calls a closure, retries on failure, and returns the value it gives.
+*
+* Usage:
+*   exponentialBackoff_(myFunction);
+*   // ...or:
+*   exponentialBackoff_(() => myFunction(param1, param2));
+*   // ...or:
+*   const result = exponentialBackoff_(() => myFunction(param1, param2));
+*   // ...or:
+*   const respondentEmail = exponentialBackoff_(() => e.response.getRespondentEmail());
+*
+* @see https://en.wikipedia.org/wiki/Exponential_backoff
+* @param {Function} action The closure to call.
+* @param {Number} maxNumTries Optional. The number of times to retry. Defaults to 5.
+* @return {Object} The closure return value.
+*/
+function exponentialBackoff_(action, maxNumTries = 5) {
+  // version 1.0, written by --Hyde, 29 December 2022
+  //  - see https://stackoverflow.com/a/74952372/13045193
+  for (let tryNumber = 1; tryNumber <= maxNumTries; tryNumber++) {
+    try {
+      return action;
+    } catch (error) {
+      if (tryNumber >= maxNumTries) {
+        throw error;
+      }
+      Utilities.sleep(2 ** (tryNumber - 1) * 1000);
+    }
+  }
+}
+
 
