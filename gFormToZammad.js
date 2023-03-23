@@ -1,11 +1,10 @@
-var POST_URL = "_______________/api/v1/tickets";
-
-var MY_TOKEN = "___________________________";
-var GROUP = "___________________________"; 
-var SUBJECT = __________int_____________;
-var FIRSTLASTNAME = _______________int____________;
-var TAG = ______________int_____________;
-var MAX_TRIES = __int__;
+var POST_URL = "_________/api/v1/tickets";
+var MY_TOKEN = "_____________"
+var GROUP = "_________"
+var SUBJECT = 2;
+var FIRSTLASTNAME = 1;
+var TAG = 2;
+var MAX_TRIES = 10;
 
 function onSubmit(event) {
 
@@ -15,12 +14,12 @@ function onSubmit(event) {
   var formResponse;
 
   try {
-    formResponse = exponentialBackoff_(event, 5)
+    formResponse = exponentialBackoff_(event, MAX_TRIES)
   } catch (error) {
-    console.log("onSubmit catch --> event: " + event)
+    //console.log("onSubmit catch --> event: " + JSON.stringify(event))
     console.log("onSubmit catch --> error message: " + error.message);
     //email da implementare
-    sendEmailtoSupport("onSubmit",error)
+    sendErrorToSupport("onSubmit",error)
     sendChatMessage(error.message)
   }
   var ticket = buildTicket(formResponse, GROUP);
@@ -137,7 +136,7 @@ function handleError(error, ticket, event) {
   var email = event.response.getRespondentEmail();
   var formTitle = event.source.getTitle();
   var formURL = event.response.toPrefilledUrl();
-  var admins = "___@___';
+  var admins = '_________________';
   var logURL = event.response.toPrefilledUrl();
 
   // notify the user that there was an error and give it the url to re-submit
@@ -191,7 +190,7 @@ function exponentialBackoff_(event, maxNumTries = MAX_TRIES) {
     } catch (error) {
       console.log("exponentialBackoff_ errorlog --> error message: " + error.message)
       //anche qui email da inviare
-      sendEmailtoSupport("exponentialBackoff_",error)
+      sendWarningToSupport("exponentialBackoff_",error)
       if (tryNumber >= maxNumTries) {
         throw error;
       }
@@ -205,7 +204,7 @@ function exponentialBackoff_(event, maxNumTries = MAX_TRIES) {
 
 function sendChatMessage(message) {
 
-  const GOOGLE_CHAT_WEBHOOK_LINK = "https://chat.googleapis.com/v1/spaces/__________";
+  const GOOGLE_CHAT_WEBHOOK_LINK = "https://chat.googleapis.com/v1/spaces/AAAAq0txrgo/messages?key=_________________&token=_________________";
 
   const payload = JSON.stringify({ text: message });
   const options = {
@@ -217,14 +216,30 @@ function sendChatMessage(message) {
 
 }
 
-function sendEmailtoSupport(fname,error) {
+function sendErrorToSupport(fname,error) {
 
-  var admins = "admin@_______.com"
-  var scriptExecution = "https://script.google.com/home/projects/_______/executions"
+  var admins = "_________________"
+  var scriptExecution = "https://script.google.com/home/projects/_________________/executions"
   MailApp.sendEmail({
     noReply: true,
     to: admins,
     subject: "There was an error on form Sicurezza sul lavoro",
+    htmlBody: "<p>Inside " + fname + " there was an error: " + error.message + "</p><br>" +
+      "link to <a href='" + scriptExecution + "'>Script</a>",
+  });
+
+}
+
+
+
+function sendWarningToSupport(fname,error) {
+
+  var admins = "_________________"
+  var scriptExecution = "https://script.google.com/home/projects/_________________/executions"
+  MailApp.sendEmail({
+    noReply: true,
+    to: admins,
+    subject: "Warning on form Sicurezza sul lavoro",
     htmlBody: "<p>Inside " + fname + " there was an error: " + error.message + "</p><br>" +
       "link to <a href='" + scriptExecution + "'>Script</a>",
   });
